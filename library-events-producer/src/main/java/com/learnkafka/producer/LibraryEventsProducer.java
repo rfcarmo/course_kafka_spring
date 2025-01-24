@@ -10,6 +10,9 @@ import org.springframework.kafka.support.SendResult;
 import org.springframework.stereotype.Component;
 
 import java.util.concurrent.CompletableFuture;
+import java.util.concurrent.ExecutionException;
+import java.util.concurrent.TimeUnit;
+import java.util.concurrent.TimeoutException;
 
 /**
  * @author rfort
@@ -34,6 +37,7 @@ public class LibraryEventsProducer {
         var key = libraryEvent.libraryEventId();
         var value = objectMapper.writeValueAsString(libraryEvent);
 
+        // Asynchronous (recomendado)
         // 1. Blocking call - get metadata  about the kafka cluster (if this call fails, we won't be able to send any msg
         //      into the kafka topic and the method handleFailure will be executed)
         // 2. Send message happens - return a completableFuture (once the first call is successful)
@@ -47,6 +51,24 @@ public class LibraryEventsProducer {
                        handleSuccess(key, value, sendResult);
                    }
                 });
+    }
+
+    public SendResult<Integer, String> sendLibraryEvent_approach2(LibraryEvent libraryEvent) throws JsonProcessingException, ExecutionException, InterruptedException, TimeoutException {
+        var key = libraryEvent.libraryEventId();
+        var value = objectMapper.writeValueAsString(libraryEvent);
+
+        // Synchronous
+        // 1. Blocking call - get metadata  about the kafka cluster (if this call fails, we won't be able to send any msg
+        //      into the kafka topic and the method handleFailure will be executed)
+        // 2. Block and wait until the msg is send to the kafka
+        var sendResult = kafkaTemplate
+                .send(topic, key, value)
+                //.get();
+                .get(3, TimeUnit.SECONDS);
+
+        handleSuccess(key, value, sendResult);
+
+        return sendResult;
     }
 
     private void handleSuccess(Integer key, String value, SendResult<Integer, String> sendResult) {
