@@ -31,7 +31,8 @@ public class LibraryEventsController {
         log.info("libraryEvent : {} ", libraryEvent);
         // invoke the kafka producer
         //libraryEventsProducer.sendLibraryEvent(libraryEvent);
-        libraryEventsProducer.sendLibraryEvent_approach2(libraryEvent);
+        //libraryEventsProducer.sendLibraryEvent_approach2(libraryEvent);
+        libraryEventsProducer.sendLibraryEvent_approach3(libraryEvent);
 
         log.info("After sending libraryEvent : ");
 

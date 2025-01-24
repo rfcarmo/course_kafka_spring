@@ -4,6 +4,7 @@ import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.learnkafka.domain.LibraryEvent;
 import lombok.extern.slf4j.Slf4j;
+import org.apache.kafka.clients.producer.ProducerRecord;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.kafka.core.KafkaTemplate;
 import org.springframework.kafka.support.SendResult;
@@ -69,6 +70,32 @@ public class LibraryEventsProducer {
         handleSuccess(key, value, sendResult);
 
         return sendResult;
+    }
+
+    public CompletableFuture<SendResult<Integer, String>> sendLibraryEvent_approach3(LibraryEvent libraryEvent) throws JsonProcessingException {
+        var key = libraryEvent.libraryEventId();
+        var value = objectMapper.writeValueAsString(libraryEvent);
+
+        var producerRecord = buildProducerRecord(key, value); // can be used in the async and sync approaches.
+
+        // Asynchronous (recomendado)
+        // 1. Blocking call - get metadata  about the kafka cluster (if this call fails, we won't be able to send any msg
+        //      into the kafka topic and the method handleFailure will be executed)
+        // 2. Send message happens - return a completableFuture (once the first call is successful)
+        var completableFuture = kafkaTemplate.send(producerRecord);
+
+        return completableFuture
+                .whenComplete((sendResult, throwable) -> {
+                    if (throwable != null) {
+                        handleFailure(key, value, throwable);
+                    } else {
+                        handleSuccess(key, value, sendResult);
+                    }
+                });
+    }
+
+    private ProducerRecord<Integer, String> buildProducerRecord(Integer key, String value) {
+        return new ProducerRecord<>(topic, key, value);
     }
 
     private void handleSuccess(Integer key, String value, SendResult<Integer, String> sendResult) {
