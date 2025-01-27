@@ -9,7 +9,6 @@ import org.apache.kafka.clients.consumer.ConsumerRecords;
 import org.apache.kafka.common.serialization.IntegerDeserializer;
 import org.apache.kafka.common.serialization.StringDeserializer;
 import org.junit.jupiter.api.AfterEach;
-import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -83,8 +82,8 @@ class LibraryEventsControllerIntegrationTest {
         ConsumerRecords<Integer, String> consumerRecord = KafkaTestUtils.getRecords(consumer);
         assert consumerRecord.count() == 1;
 
-        consumerRecord.forEach(record -> {
-            var libraryEventActual = TestUtil.parseLibraryEventRecord(objectMapper, record.value());
+        consumerRecord.forEach(r -> {
+            var libraryEventActual = TestUtil.parseLibraryEventRecord(objectMapper, r.value());
             System.out.println("libraryEventActual: " + libraryEventActual);
             assertEquals(libraryEventActual, TestUtil.libraryEventRecord());
         });
