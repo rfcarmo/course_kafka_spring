@@ -8,7 +8,7 @@ import org.springframework.stereotype.Component;
 /**
  * @author rfort
  **/
-//@Component
+@Component
 @Slf4j
 public class LibraryEventsConsumer {
 

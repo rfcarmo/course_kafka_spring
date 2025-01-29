@@ -10,7 +10,7 @@ import org.springframework.stereotype.Component;
 /**
  * @author rfort
  **/
-@Component
+//@Component
 @Slf4j
 public class LibraryEventsConsumerManualOffset implements AcknowledgingMessageListener<Integer, String> {
 
