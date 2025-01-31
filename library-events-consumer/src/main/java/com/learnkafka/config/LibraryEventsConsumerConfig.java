@@ -15,6 +15,8 @@ import org.springframework.kafka.listener.ContainerProperties;
 import org.springframework.kafka.listener.DefaultErrorHandler;
 import org.springframework.util.backoff.FixedBackOff;
 
+import java.util.List;
+
 /**
  * @author rfort
  **/
@@ -27,9 +29,13 @@ public class LibraryEventsConsumerConfig {
     KafkaProperties kafkaProperties;
 
     public DefaultErrorHandler errorHandler() {
+        var exceptionsToIgnoreList = List.of(IllegalArgumentException.class);
+
         FixedBackOff fixedBackOff = new FixedBackOff(1000L, 2);
 
         DefaultErrorHandler errorHandler = new DefaultErrorHandler(fixedBackOff);
+
+        exceptionsToIgnoreList.forEach(errorHandler::addNotRetryableExceptions);
 
         errorHandler
                 .setRetryListeners((record, ex, deliveryAttempt) -> {
