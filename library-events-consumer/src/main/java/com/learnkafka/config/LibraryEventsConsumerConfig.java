@@ -47,6 +47,8 @@ public class LibraryEventsConsumerConfig {
 
     public DeadLetterPublishingRecoverer publishingRecoverer() {
         DeadLetterPublishingRecoverer recoverer = new DeadLetterPublishingRecoverer(kafkaTemplate, (r, e) -> {
+            log.info("Exception in publishingRecoverer: {}", e.getCause().getMessage(), e);
+
             if (e.getCause() instanceof RecoverableDataAccessException) {
                 return new TopicPartition(retryTopic, r.partition());
             } else {
@@ -71,8 +73,8 @@ public class LibraryEventsConsumerConfig {
         // DefaultErrorHandler errorHandler = new DefaultErrorHandler(fixedBackOff);
         DefaultErrorHandler errorHandler = new DefaultErrorHandler(publishingRecoverer(), exponentialBackOff);
 
-        // exceptionsToIgnoreList.forEach(errorHandler::addNotRetryableExceptions);
-        exceptionsToRetryList.forEach(errorHandler::addRetryableExceptions);
+        exceptionsToIgnoreList.forEach(errorHandler::addNotRetryableExceptions);
+        // exceptionsToRetryList.forEach(errorHandler::addRetryableExceptions);
 
         errorHandler
                 .setRetryListeners((record, ex, deliveryAttempt) -> {
