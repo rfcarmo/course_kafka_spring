@@ -83,7 +83,7 @@ public class LibraryEventsProducer {
 
         // Asynchronous (recomendado)
         // 1. Blocking call - get metadata  about the kafka cluster (if this call fails, we won't be able to send any msg
-        //      into the kafka topic and the method handleFailure will be executed)
+        //      into the kafka topic and the method handleFailure will be executed) -> max.block.ms (prop que define max tempo de espera)
         // 2. Send message happens - return a completableFuture (once the first call is successful)
         var completableFuture = kafkaTemplate.send(producerRecord);
 
