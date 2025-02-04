@@ -32,9 +32,11 @@ import org.springframework.test.context.bean.override.mockito.MockitoSpyBean;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Objects;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.TimeUnit;
+import java.util.stream.Collectors;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.mockito.ArgumentMatchers.isA;
@@ -48,7 +50,7 @@ import static org.mockito.Mockito.verify;
 @SpringBootTest
 @EmbeddedKafka(topics = { "library-events", "library-events.RETRY", "library-events.DLT" }, partitions = 3)
 @TestPropertySource(properties = { "spring.kafka.producer.bootstrap-servers=${spring.embedded.kafka.brokers}",
-        "spring.kafka.consumer.bootstrap-servers=${spring.embedded.kafka.brokers}" })
+        "spring.kafka.consumer.bootstrap-servers=${spring.embedded.kafka.brokers}", "retryListener.startup=false" })
 public class LibraryEventsConsumerIntegrationTest {
 
     @Autowired
@@ -84,9 +86,16 @@ public class LibraryEventsConsumerIntegrationTest {
 
     @BeforeEach
     void setUp() {
-        for (MessageListenerContainer messageListenerContainer : endpointRegistry.getListenerContainers()) {
-            ContainerTestUtils.waitForAssignment(messageListenerContainer, embeddedKafkaBroker.getPartitionsPerTopic());
-        }
+//        for (MessageListenerContainer messageListenerContainer : endpointRegistry.getListenerContainers()) {
+//            ContainerTestUtils.waitForAssignment(messageListenerContainer, embeddedKafkaBroker.getPartitionsPerTopic());
+//        }
+
+        var container = endpointRegistry.getListenerContainers()
+                .stream().filter(messageListenerContainer ->
+                        Objects.equals(messageListenerContainer.getGroupId(), "library-events-listener-group"))
+                .toList().get(0);
+
+        ContainerTestUtils.waitForAssignment(container, embeddedKafkaBroker.getPartitionsPerTopic());
     }
 
     @AfterEach
